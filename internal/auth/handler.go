@@ -29,7 +29,20 @@ func (h *Handler) Register(rg *gin.RouterGroup) {
 	}
 }
 
-// Login handles POST /api/v1/auth/login.
+// Login authenticates a user and returns a JWT access token.
+//
+// @Summary      Login
+// @Description  Calls identity.sp_get_login_details, verifies the bcrypt password hash in Go, and returns a JWT. The password hash is never included in the response.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      LoginRequest  true  "Login credentials"
+// @Success      200      {object}  LoginOK
+// @Failure      400      {object}  response.Envelope
+// @Failure      401      {object}  response.Envelope
+// @Failure      403      {object}  response.Envelope
+// @Failure      500      {object}  response.Envelope
+// @Router       /api/v1/auth/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -50,7 +63,17 @@ func (h *Handler) Login(c *gin.Context) {
 	response.OK(c, result)
 }
 
-// Logout handles POST /api/v1/auth/logout.
+// Logout validates the JWT access token. Server-side session revocation is not implemented yet.
+//
+// @Summary      Logout
+// @Description  Validates the Bearer access token. Clients must discard the token locally until refresh-session invalidation exists.
+// @Tags         auth
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  LogoutOK
+// @Failure      401  {object}  response.Envelope
+// @Failure      500  {object}  response.Envelope
+// @Router       /api/v1/auth/logout [post]
 func (h *Handler) Logout(c *gin.Context) {
 	if err := h.service.Logout(c.Request.Context(), c.GetHeader("Authorization")); err != nil {
 		writeAuthError(c, err)

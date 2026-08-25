@@ -167,3 +167,46 @@ func TestLoginAndLogoutHTTP(t *testing.T) {
 		t.Fatalf("logout status = %d body=%s", logoutRec.Code, logoutRec.Body.String())
 	}
 }
+
+func TestSwaggerUIIsMounted(t *testing.T) {
+	cfg := &config.Config{
+		AppName: "futureEnvironsBE",
+		AppEnv:  "test",
+		Port:    "8080",
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	engine := router.New(cfg, logger, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/swagger/index.html", nil)
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("swagger UI status = %d, want 200 body=%s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestSwaggerJSONIncludesLoginAndLogout(t *testing.T) {
+	cfg := &config.Config{
+		AppName: "futureEnvironsBE",
+		AppEnv:  "test",
+		Port:    "8080",
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+	engine := router.New(cfg, logger, nil)
+
+	req := httptest.NewRequest(http.MethodGet, "/swagger/doc.json", nil)
+	rec := httptest.NewRecorder()
+	engine.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("swagger doc status = %d, want 200 body=%s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	for _, path := range []string{"/api/v1/auth/login", "/api/v1/auth/logout"} {
+		if !strings.Contains(body, path) {
+			t.Fatalf("swagger doc.json missing %s", path)
+		}
+	}
+}
