@@ -2,6 +2,7 @@
 package config
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strconv"
@@ -31,7 +32,10 @@ type Config struct {
 
 // Load reads configuration from the process environment.
 // Missing optional values fall back to safe defaults.
+// A local .env file is loaded when present (existing env vars are not overridden).
 func Load() (*Config, error) {
+	loadEnvFile()
+
 	cfg := &Config{
 		AppName: getEnv("APP_NAME", "futureEnvironsBE"),
 		AppEnv:  getEnv("APP_ENV", "development"),
@@ -122,4 +126,35 @@ func durationSeconds(key string, fallback int) (time.Duration, error) {
 		return 0, fmt.Errorf("config: %s must be >= 0", key)
 	}
 	return time.Duration(seconds) * time.Second, nil
+}
+
+func loadEnvFile() {
+	f, err := os.Open(".env")
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+		if key == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(key); exists {
+			continue
+		}
+		_ = os.Setenv(key, val)
+	}
 }

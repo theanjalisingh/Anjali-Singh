@@ -8,6 +8,7 @@ import (
 
 	"futureEnvironsBE/internal/auth"
 	"futureEnvironsBE/internal/config"
+	"futureEnvironsBE/internal/docs"
 	"futureEnvironsBE/internal/middleware"
 	"futureEnvironsBE/internal/response"
 
@@ -31,6 +32,8 @@ func New(cfg *config.Config, logger *slog.Logger, authHandler *auth.Handler) *gi
 
 	// Load balancer / ops probe — kept outside /api/v1.
 	r.GET("/health", healthHandler(cfg))
+
+	docs.Register(r)
 
 	// Versioned API root. Domain modules will register under this group later.
 	v1 := r.Group("/api/v1")
