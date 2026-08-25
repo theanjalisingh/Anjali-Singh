@@ -4,8 +4,8 @@ import "time"
 
 // LoginRequest is the JSON body for POST /api/v1/auth/login.
 type LoginRequest struct {
-	EmailID  string `json:"email_id"`
-	Password string `json:"password"`
+	EmailID  string `json:"email_id" example:"admin@futureenvirons.com"`
+	Password string `json:"password" example:"Admin@123"`
 }
 
 // Role is a single assigned application role.
@@ -37,7 +37,19 @@ type LoginResponse struct {
 
 // LogoutResponse is returned after a successful logout.
 type LogoutResponse struct {
-	Message string `json:"message"`
+	Message string `json:"message" example:"logged out"`
+}
+
+// LoginOK is the success JSON envelope documented in Swagger for login.
+type LoginOK struct {
+	Success bool          `json:"success" example:"true"`
+	Data    LoginResponse `json:"data"`
+}
+
+// LogoutOK is the success JSON envelope documented in Swagger for logout.
+type LogoutOK struct {
+	Success bool           `json:"success" example:"true"`
+	Data    LogoutResponse `json:"data"`
 }
 
 // LoginRow is one row from identity.sp_get_login_details.

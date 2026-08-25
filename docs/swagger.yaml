@@ -1,0 +1,171 @@
+basePath: /
+definitions:
+  auth.LoginOK:
+    properties:
+      data:
+        $ref: '#/definitions/auth.LoginResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  auth.LoginRequest:
+    properties:
+      email_id:
+        example: admin@futureenvirons.com
+        type: string
+      password:
+        example: Admin@123
+        type: string
+    type: object
+  auth.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+      user:
+        $ref: '#/definitions/auth.UserProfile'
+    type: object
+  auth.LogoutOK:
+    properties:
+      data:
+        $ref: '#/definitions/auth.LogoutResponse'
+      success:
+        example: true
+        type: boolean
+    type: object
+  auth.LogoutResponse:
+    properties:
+      message:
+        example: logged out
+        type: string
+    type: object
+  auth.Role:
+    properties:
+      role_code:
+        type: string
+      role_id:
+        type: string
+      role_name:
+        type: string
+    type: object
+  auth.UserProfile:
+    properties:
+      contact_no:
+        type: string
+      email_id:
+        type: string
+      organization_id:
+        type: string
+      organization_name:
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/auth.Role'
+        type: array
+      user_id:
+        type: string
+      user_name:
+        type: string
+    type: object
+  response.APIError:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  response.Envelope:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/response.APIError'
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Backend API for the Future Environs IoT platform. Login uses identity.sp_get_login_details;
+    passwords are verified in Go.
+  title: Future Environs API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Calls identity.sp_get_login_details, verifies the bcrypt password
+        hash in Go, and returns a JWT. The password hash is never included in the
+        response.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginOK'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      summary: Login
+      tags:
+      - auth
+  /api/v1/auth/logout:
+    post:
+      description: Validates the Bearer access token. Clients must discard the token
+        locally until refresh-session invalidation exists.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LogoutOK'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Envelope'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Envelope'
+      security:
+      - BearerAuth: []
+      summary: Logout
+      tags:
+      - auth
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT access token from login.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: Login and logout
+  name: auth

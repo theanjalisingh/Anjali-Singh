@@ -11,7 +11,11 @@ import (
 	"futureEnvironsBE/internal/middleware"
 	"futureEnvironsBE/internal/response"
 
+	_ "futureEnvironsBE/docs"
+
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // New builds the Gin engine with foundation middleware and routes.
@@ -31,6 +35,9 @@ func New(cfg *config.Config, logger *slog.Logger, authHandler *auth.Handler) *gi
 
 	// Load balancer / ops probe — kept outside /api/v1.
 	r.GET("/health", healthHandler(cfg))
+
+	// Swagger UI: http://localhost:8080/swagger/index.html
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Versioned API root. Domain modules will register under this group later.
 	v1 := r.Group("/api/v1")

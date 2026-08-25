@@ -1,3 +1,17 @@
+// @title           Future Environs API
+// @version         1.0
+// @description     Backend API for the Future Environs IoT platform. Login uses identity.sp_get_login_details; passwords are verified in Go.
+// @host            localhost:8080
+// @BasePath        /
+// @schemes         http
+//
+// @tag.name        auth
+// @tag.description Login and logout
+//
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and the JWT access token from login.
 package main
 
 import (
@@ -16,6 +30,8 @@ import (
 	"futureEnvironsBE/internal/config"
 	"futureEnvironsBE/internal/database"
 	"futureEnvironsBE/internal/router"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -26,6 +42,9 @@ func main() {
 }
 
 func run() error {
+	// Load .env when present so VS Code Run/Debug and `go run` pick up local settings.
+	_ = godotenv.Load()
+
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
