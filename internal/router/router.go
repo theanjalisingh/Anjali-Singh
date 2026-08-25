@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"futureEnvironsBE/internal/auth"
 	"futureEnvironsBE/internal/config"
 	"futureEnvironsBE/internal/middleware"
 	"futureEnvironsBE/internal/response"
@@ -14,7 +15,7 @@ import (
 )
 
 // New builds the Gin engine with foundation middleware and routes.
-func New(cfg *config.Config, logger *slog.Logger) *gin.Engine {
+func New(cfg *config.Config, logger *slog.Logger, authHandler *auth.Handler) *gin.Engine {
 	if cfg.IsDevelopment() {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -35,6 +36,9 @@ func New(cfg *config.Config, logger *slog.Logger) *gin.Engine {
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("/health", healthHandler(cfg))
+		if authHandler != nil {
+			authHandler.Register(v1)
+		}
 	}
 
 	// Consistent JSON 404 for unknown routes.

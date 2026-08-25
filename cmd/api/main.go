@@ -10,8 +10,11 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
+	"futureEnvironsBE/internal/auth"
 	"futureEnvironsBE/internal/config"
+	"futureEnvironsBE/internal/database"
 	"futureEnvironsBE/internal/router"
 )
 
@@ -35,7 +38,25 @@ func run() error {
 		"addr", cfg.Addr(),
 	)
 
-	engine := router.New(cfg, logger)
+	dbCtx, dbCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer dbCancel()
+
+	pool, err := database.NewPool(dbCtx, cfg.DatabaseURL)
+	if err != nil {
+		return fmt.Errorf("connect database: %w", err)
+	}
+	defer pool.Close()
+	logger.Info("database connected")
+
+	tokens, err := auth.NewTokenManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpiry)
+	if err != nil {
+		return fmt.Errorf("jwt: %w", err)
+	}
+
+	authService := auth.NewService(auth.NewRepository(pool), tokens, logger)
+	authHandler := auth.NewHandler(authService)
+
+	engine := router.New(cfg, logger, authHandler)
 
 	server := &http.Server{
 		Addr:         cfg.Addr(),
