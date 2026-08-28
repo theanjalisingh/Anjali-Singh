@@ -25,7 +25,7 @@ func TestHealthEndpoints(t *testing.T) {
 		Port:    "8080",
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	engine := router.New(cfg, logger, nil)
+	engine := router.New(cfg, logger, nil, nil, nil)
 
 	paths := []string{"/health", "/api/v1/health"}
 	for _, path := range paths {
@@ -71,7 +71,7 @@ func TestUnknownRouteReturnsEnvelope(t *testing.T) {
 		Port:    "8080",
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	engine := router.New(cfg, logger, nil)
+	engine := router.New(cfg, logger, nil, nil, nil)
 
 	req := httptest.NewRequest(http.MethodGet, "/does-not-exist", nil)
 	rec := httptest.NewRecorder()
@@ -128,7 +128,7 @@ func TestLoginAndLogoutHTTP(t *testing.T) {
 	}}}
 	handler := auth.NewHandler(auth.NewService(store, tokens, logger))
 	cfg := &config.Config{AppName: "futureEnvironsBE", AppEnv: "test", Port: "8080"}
-	engine := router.New(cfg, logger, handler)
+	engine := router.New(cfg, logger, tokens, handler, nil)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/auth/login", strings.NewReader(`{"email_id":"admin@futureenvirons.com","password":"Admin@123"}`))
 	req.Header.Set("Content-Type", "application/json")

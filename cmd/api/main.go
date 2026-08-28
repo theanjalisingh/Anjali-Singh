@@ -16,6 +16,7 @@ import (
 	"futureEnvironsBE/internal/config"
 	"futureEnvironsBE/internal/database"
 	"futureEnvironsBE/internal/router"
+	"futureEnvironsBE/internal/user"
 )
 
 func main() {
@@ -56,7 +57,10 @@ func run() error {
 	authService := auth.NewService(auth.NewRepository(pool), tokens, logger)
 	authHandler := auth.NewHandler(authService)
 
-	engine := router.New(cfg, logger, authHandler)
+	userService := user.NewService(user.NewRepository(pool), logger)
+	userHandler := user.NewHandler(userService)
+
+	engine := router.New(cfg, logger, tokens, authHandler, userHandler)
 
 	server := &http.Server{
 		Addr:         cfg.Addr(),

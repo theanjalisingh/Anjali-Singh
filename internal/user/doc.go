@@ -1,2 +1,2 @@
-// Package user will be implemented in a later phase.
+// Package user implements user management APIs backed by identity.sp_manage_user.
 package user

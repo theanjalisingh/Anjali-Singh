@@ -11,12 +11,13 @@ import (
 	"futureEnvironsBE/internal/docs"
 	"futureEnvironsBE/internal/middleware"
 	"futureEnvironsBE/internal/response"
+	"futureEnvironsBE/internal/user"
 
 	"github.com/gin-gonic/gin"
 )
 
 // New builds the Gin engine with foundation middleware and routes.
-func New(cfg *config.Config, logger *slog.Logger, authHandler *auth.Handler) *gin.Engine {
+func New(cfg *config.Config, logger *slog.Logger, tokens *auth.TokenManager, authHandler *auth.Handler, userHandler *user.Handler) *gin.Engine {
 	if cfg.IsDevelopment() {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -41,6 +42,9 @@ func New(cfg *config.Config, logger *slog.Logger, authHandler *auth.Handler) *gi
 		v1.GET("/health", healthHandler(cfg))
 		if authHandler != nil {
 			authHandler.Register(v1)
+		}
+		if userHandler != nil && tokens != nil {
+			userHandler.Register(v1, middleware.RequireAuth(tokens))
 		}
 	}
 
